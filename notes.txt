@@ -1,0 +1,5 @@
+setup a virtual environement type: virtualenv venv python=python3
+to activate a virtual environment, type: source venv/bin/activate
+do deactive a virtual enivronment, type: deactivate
+
+to see the currently used libraries inside a virutal environment, enter the venv and type: pip freeze
