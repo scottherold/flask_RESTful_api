@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Resource, Api
 
 # ==== Server =====
@@ -22,14 +22,21 @@ class Item(Resource):
         return {'item': None}, 404 # sends 404 error
 
     def post(self, name):
-        item = {'name': name, 'price': 12.99}
+        data = request.get_json()
+        item = {'name': name, 'price': data['price']}
         items.append(item)
         return item, 201 # Http status for created
+
+
+class ItemList(Resource):
+    def get(self):
+        return {'items': items}
 
 
 # ===== Endpoints =====
 # add the class, along with the URL
 api.add_resource(Item, '/item/<string:name>') # http://127.0.0.1:5000/item/cheese
+api.add_resource(ItemList, '/items') # http//127.0.0.1:5000/items
 
 # ===== Server =====
 app.run(port=5000)
