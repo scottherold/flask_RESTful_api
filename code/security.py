@@ -19,6 +19,5 @@ def authenticate(username, password):
 
 # from flask_jwt
 def identify(payload):
-    # Need to receive from client Header: Authorization / JWT token
     user_id = payload['identity']
     return userid_mapping.get(user_id, None)

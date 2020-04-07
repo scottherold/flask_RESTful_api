@@ -61,6 +61,12 @@ class Item(Resource):
         items.append(item)
         return item, 201 # Http status for created
 
+    def delete(self, name):
+        global items # sets the below items variable to the global scoped items variable
+        # lambda to mutate a new list from the items list
+        items = list(filter(lambda x: x['name'] != name, items))
+        return {'message': 'Item deleted'}
+
 
 class ItemList(Resource):
     def get(self):
