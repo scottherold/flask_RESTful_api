@@ -1,9 +1,16 @@
 from flask import Flask, request
 from flask_restful import Resource, Api
+from flask_jwt import JWT, jwt_required
+
+from security import authenticate, identify
 
 # ==== Server =====
 app = Flask(__name__)
+app.secret_key = 'thisisasecretkey' # NOTE change for production
 api = Api(app)
+
+# === Security ===
+jwt = JWT(app, authenticate, identify) # creates /auth endpoint
 
 # ==== Data =====
 items = []
@@ -13,8 +20,22 @@ items = []
 # resources from flask_restful allow you to create classes for API data
 # flask_restful automatically jsonifies dictionaries
 class Item(Resource):
+    """Flask RESTful item (resource) that performs HTTP requests
+    
+    Methods:
+        get: Retrieves an item from the local data storage (items list in data) using the 'name'
+            argument provided in the URL string. This requires authentication
+
+        post: Adds a new item to local storage (items list in data) using the 'name' argument
+            provided in the URL string. Adds a 'price' key/value supplied by the HTTP request
+            JSON body.
+    """
     # create fucntions for each HTTP method you will allow for the
     # resource
+
+    # Need to receive from client Header: Authorization / "JWT token"
+    # NOTE remove the "" from the JWT token in the header.
+    @jwt_required()
     def get(self, name):
         # filter using lambda function
         # filter can return whatever data type you please; 'next'
