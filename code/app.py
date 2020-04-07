@@ -21,6 +21,9 @@ items = []
 # flask_restful automatically jsonifies dictionaries
 class Item(Resource):
     """Flask RESTful item (resource) that performs HTTP requests
+    Static Attributes:
+        parser (obj): Instance of the flask_restful RequestParser class from flask_restful. Allows
+            for validations on request bodies from HTTP requests (specifically in JSON).
     
     Methods:
         get: Retrieves an item from the local data storage (items list in data) using the 'name'
@@ -39,6 +42,14 @@ class Item(Resource):
             updates the item in the localstorage list that matches the name argument provided, with
             the 'price' key/value pair supplied by the HTTP request JSON body.
     """
+    parser = reqparse.RequestParser() # request body parser from flask_restful
+    # data validations
+    parser.add_argument('price',
+        type = float,
+        required = True,
+        help = "This field cannot be left blank!"
+    )
+
     # create fucntions for each HTTP method you will allow for the
     # resource
 
@@ -65,7 +76,7 @@ class Item(Resource):
         # the requested name
         if next(filter(lambda x: x['name'] == name, items), None):
             return {'messsage': "An item with name '{}' already exists".format(name)}, 400
-        data = request.get_json()
+        data = Item.parser.parse_args()
         item = {'name': name, 'price': data['price']}
         items.append(item)
         return item, 201 # Http status for created
@@ -77,14 +88,7 @@ class Item(Resource):
         return {'message': 'Item deleted'}
 
     def put(self, name):
-        parser = reqparse.RequestParser() # request body parser from flask_restful
-        # data validations
-        parser.add_argument('price',
-            type = float,
-            required = True,
-            help = "This field cannot be left blank!"
-        )
-        data = parser.parse_args()
+        data = Item.parser.parse_args()
 
         item = next(filter(lambda x: x['name'] == name, items), None)
         # create new item
