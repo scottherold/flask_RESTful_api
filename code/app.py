@@ -27,8 +27,17 @@ class Item(Resource):
             argument provided in the URL string. This requires authentication
 
         post: Adds a new item to local storage (items list in data) using the 'name' argument
-            provided in the URL string. Adds a 'price' key/value supplied by the HTTP request
+            provided in the URL string. Adds a 'price' key/value pair supplied by the HTTP request
             JSON body.
+
+        delete: Deletes an item in local storage (items list in data) using the 'name argument
+            provided in the URL string. If no item found, responds with appropriates JSON message.
+
+        put: Updates or created a new item to local storage (items list in data) using the 'name'
+            argument provided in the URL string. If the item is not present in local storage,
+            creates a new item and appends it to the localstorage items list. Otherwise, it
+            updates the item in the localstorage list that matches the name argument provided, with
+            the 'price' key/value pair supplied by the HTTP request JSON body.
     """
     # create fucntions for each HTTP method you will allow for the
     # resource
@@ -66,6 +75,18 @@ class Item(Resource):
         # lambda to mutate a new list from the items list
         items = list(filter(lambda x: x['name'] != name, items))
         return {'message': 'Item deleted'}
+
+    def put(self, name):
+        data = request.get_json()
+        item = next(filter(lambda x: x['name'] == name, items), None)
+        # create new item
+        if item is None:
+            item = {'name': name, 'price': data['price']}
+            items.append(item)
+        # update item
+        else:
+            item.update(data)
+        return item
 
 
 class ItemList(Resource):
