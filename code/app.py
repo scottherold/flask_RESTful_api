@@ -76,7 +76,9 @@ class Item(Resource):
         # the requested name
         if next(filter(lambda x: x['name'] == name, items), None):
             return {'messsage': "An item with name '{}' already exists".format(name)}, 400
+
         data = Item.parser.parse_args()
+        
         item = {'name': name, 'price': data['price']}
         items.append(item)
         return item, 201 # Http status for created
