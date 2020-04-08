@@ -13,6 +13,9 @@ class Item(Resource):
     Class Methods:
         find_by_name: Takes the arguement 'name' and performs a GET query on the DB to determine
             if the item is present.
+
+        insert: Takes in an item as an argument. Opens a stream to the DB and performs an insert
+            query to add a new data piece.
     
     Methods:
         get: Retrieves an item from the DB using the 'name' argument provided in the URL string.
@@ -53,6 +56,19 @@ class Item(Resource):
         if row:
             return {'item': {'name': row[0], 'price': row[1]}}
 
+    @classmethod
+    def insert(cls, item):
+        # DB Connect
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+
+        # query
+        query = "INSERT INTO items VALUES (?, ?)"
+        cursor.execute(query, (item['name'], item['price']))
+
+        connection.commit()
+        connection.close()
+
     # create fucntions for each HTTP method you will allow for the
     # resource
 
@@ -76,16 +92,11 @@ class Item(Resource):
         
         item = {'name': name, 'price': data['price']}
         
-        # DB Connect
-        connection = sqlite3.connect('data.db')
-        cursor = connection.cursor()
-
-        # query
-        query = "INSERT INTO items VALUES (?, ?)"
-        cursor.execute(query, (item['name'], item['price']))
-
-        connection.commit()
-        connection.close()
+        # try/except block for potential DB insert failure
+        try:
+            Item.insert(item)
+        except:
+            return {'message': 'An error occured inserting the item.'}, 500 # internal server error
 
         return item, 201 # Http status for created
 
