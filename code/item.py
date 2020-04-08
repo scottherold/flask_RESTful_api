@@ -83,17 +83,29 @@ class Item(Resource):
         # query
         query = "INSERT INTO items VALUES (?, ?)"
         cursor.execute(query, (item['name'], item['price']))
-        
+
         connection.commit()
         connection.close()
 
         return item, 201 # Http status for created
 
     def delete(self, name):
-        global items # sets the below items variable to the global scoped items variable
-        # lambda to mutate a new list from the items list
-        items = list(filter(lambda x: x['name'] != name, items))
-        return {'message': 'Item deleted'}
+        # data present check
+        item = Item.find_by_name(name)
+        if item:
+            # DB Connect
+            connection = sqlite3.connect('data.db')
+            cursor = connection.cursor()
+
+            # query
+            query = "DELETE FROM items WHERE name = ?"
+            cursor.execute(query, (name,)) # single variable tuple
+
+            connection.commit()
+            connection.close()
+
+            return {'message': 'Item deleted'}
+        return {'message': 'Item not found'}, 404
 
     def put(self, name):
         data = Item.parser.parse_args()
