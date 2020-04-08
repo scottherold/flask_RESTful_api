@@ -3,6 +3,7 @@ from flask_restful import Resource, Api, reqparse
 from flask_jwt import JWT, jwt_required
 
 from security import authenticate, identify
+from user import UserRegister
 
 # ==== Server =====
 app = Flask(__name__)
@@ -22,8 +23,8 @@ items = []
 class Item(Resource):
     """Flask RESTful item (resource) that performs HTTP requests
     Static Attributes:
-        parser (obj): Instance of the flask_restful RequestParser class from flask_restful. Allows
-            for validations on request bodies from HTTP requests (specifically in JSON).
+        parser (obj): Instance of the flask_restful RequestParser class. Allows for validations on
+        request bodies from HTTP requests (specifically in JSON).
     
     Methods:
         get: Retrieves an item from the local data storage (items list in data) using the 'name'
@@ -112,6 +113,7 @@ class ItemList(Resource):
 # add the class, along with the URL
 api.add_resource(Item, '/item/<string:name>') # http://127.0.0.1:5000/item/cheese
 api.add_resource(ItemList, '/items') # http//127.0.0.1:5000/items
+api.add_resource(UserRegister, '/register') # http://127.0.0.1:5000/register
 
 # ===== Server =====
 app.run(port=5000, debug=True)
