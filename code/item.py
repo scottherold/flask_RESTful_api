@@ -14,8 +14,12 @@ class Item(Resource):
         find_by_name: Takes the arguement 'name' and performs a GET query on the DB to determine
             if the item is present.
 
-        insert: Takes in an item as an argument. Opens a stream to the DB and performs an insert
+        insert: Takes in an Item as an argument. Opens a stream to the DB and performs an insert
             query to add a new data piece.
+
+        update: Takes in an Item as an argument. If the Item is not present in the DB, creates a
+            new Item using the Item argument's name attribute and adds it to the DB. Otherwise, it
+            updates the item in the DB that matches the provided Item argument's name attribute.
     
     Methods:
         get: Retrieves an item from the DB using the 'name' argument provided in the URL string.
@@ -29,8 +33,7 @@ class Item(Resource):
             item found, responds with appropriates JSON message.
 
         put: Updates or created a new item to the DB using the 'name' argument provided in the URL
-            string. If the item is not present in the DB, creates a new item and add it to the DB.
-            Otherwise, it updates the item in the DB that matches the name argument provided, with
+            string. , with
             the 'price' key/value pair supplied by the HTTP request JSON body.
     """
     parser = reqparse.RequestParser() # request body parser from flask_restful
@@ -65,6 +68,19 @@ class Item(Resource):
         # query
         query = "INSERT INTO items VALUES (?, ?)"
         cursor.execute(query, (item['name'], item['price']))
+
+        connection.commit()
+        connection.close()
+
+    @classmethod
+    def update(cls, item):
+        # DB Connect
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+
+        # query
+        query = "UPDATE items SET price = ? WHERE name = ?"
+        cursor.execute(query, (item['price'], item['name']))
 
         connection.commit()
         connection.close()
@@ -121,15 +137,24 @@ class Item(Resource):
     def put(self, name):
         data = Item.parser.parse_args()
 
-        item = next(filter(lambda x: x['name'] == name, items), None)
+        item = Item.find_by_name(name)
+        updated_item = {'name': name, 'price': data['price']}
+
         # create new item
         if item is None:
-            item = {'name': name, 'price': data['price']}
-            items.append(item)
+            # try/except block for potential DB insert failure
+            try:
+                Item.insert(updated_item)
+            except:
+                return {'message': 'An error has occurred inserting the item.'}, 500 # internal server error
         # update item
         else:
-            item.update(data)
-        return item
+            # try/except block for potential DB insert failure
+            try:
+                Item.update(updated_item)
+            except:
+                return {'message': 'An error has occurred updating the item.'}, 500 # internal server error
+        return updated_item
 
 
 class ItemList(Resource):
