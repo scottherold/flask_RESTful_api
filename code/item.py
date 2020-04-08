@@ -158,5 +158,26 @@ class Item(Resource):
 
 
 class ItemList(Resource):
+    """This class generates a list of items (Item class) from the database
+    
+    Methods:
+        get: Queries the database for all items and returns a list of items (Item class).
+    """
     def get(self):
+        # DB Connect
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+
+        # query
+        query = "SELECT * FROM items"
+        result = cursor.execute(query)
+
+        items = []
+
+        # instantiate items in JSON
+        for row in result:
+            items.append({'name': row[0], 'price': row[1]})
+
+        connection.close()
+
         return {'items': items}
